@@ -1,6 +1,11 @@
-# Modeling Network Load and Player Experience in Online Games: A Monte Carlo and Multiprocessed Approach
+# Monte Carlo Simulation of Server Load and Player Behavior in Large Scale Multiplayer Games
 
-## Introduction
+<h2 align=left>Abstract (Template)</h2>
+This study explores the performance limitations of centralized multiplayer game servers using a Monte Carlo simulation of diverse player behaviors. We model three player archetypes (idler, casual, pro) and tract metrics such as latency, happiness, and disconnections over time. Through repeated simulations across varying server capacities, we estimate the overload thresholds and average player satisfaction. The results indicate that player diversity significantly impacts server load, and that a server size of [SERVER_SIZE] minimizes overloads in 90% of scenarios. This work can inform better capacity planning for MMORPG and open-world multiplayer games.
+
+*Keywords: Monte Carlo, Simulation, Stochastic Modelling, Capacity Planning, Agent-Based Modelling*
+
+<h2 align=center>I. Introduction</h2>
 Modern online games often experience unpredictable and spiky loads:
 
 - New updates cause traffic surges.
@@ -8,26 +13,28 @@ Modern online games often experience unpredictable and spiky loads:
 - Weekend vs weekday behavior differs.
 
 
+```
 Backend engineers need to predict when and how a server might break down under pressure. But they rarely have access to complete real-world data before launch — this is where simulations help.
 
 By using Monte Carlo simulations, we can artificially model thousands of "what if" days — each with unique conditions like peak hours, sudden traffic, or player dropouts. This gives developers insight into system limits and risk patterns — before the servers go live.
+```
 
-## Problem
-Questions: 
-- How do key factors such as latency spike and server overload influence the probability of player disconnection or dissatisfaction?
+The objectives of this study is to simulate an online game server's performance under increasing player load and to estimate the optimal server capacity and predict overload thresholds in open-world multiplayer games using player behavior models and Monte Carlo simulation.
+
+## Research Questions
+1. What is the relationship between server capacity and the rate of player disconnections due to overload?
+
+2. What is the tipping point of server capacity that leads to a significant rise in unhappy players?
+
+3. How do different types of players (idler, casual, pro) impact server load and average session duration?
 
 
-- What thresholds of player load or connection instability lead to a measurable degradation in server performance metrics like matchmaking time or session uptime?
+4. What server capacity minimizes overload probability in 90% of the simulation runs?
 
 
-- How do varying levels of player concurrency, latency, and dropout rates affect overall system reliability and player satisfaction in simulated multiplayer environments?
-
-
-## Objectives
-Simulate an online game server's performance under increasing player load.
-- *Goal*: Identify the threshold where latency and failure rates begin to spike (i.e., the “overload point”).
 ## Related Literature
-## Methodology
+<h2 align=center>II. Methodology</h2>
+
 ### Initialize the Monte Carlo Data Simulation
 - **Players as Agents**: Each player is an agent with traits (ping, patience, quit rate, etc.).
 - **Servers**: Have capacity, load limits, latency response, crash thresholds.
@@ -84,6 +91,7 @@ Performance benchmarks (how much faster is parallelism?)
 Insight into Python's threading/multiprocessing behavior
 Relevance to real backend workloads
 
+<h2 align=center>III. Key Findings</h2>
 
 ## Challenges in Finding Specific Published Research
 
@@ -94,9 +102,17 @@ While the application is logical and feasible, specific detailed research papers
 - *Variability Across Games*: Game backends are highly game-specific. A detailed simulation model for one game might not be directly applicable to another, making generalized research more challenging.
 - *Alternative Simulation Techniques*: While Monte Carlo is suitable, other simulation techniques (e.g., discrete-event simulation, agent-based modeling) or purely data-driven approaches (using machine learning on live telemetry data) might also be used in the industry.
 
+<h2 align=center>IV. Conclusion</h2>
+
 ## Significance of the Study:
 Helps developers anticipate server behavior under real-world chaotic player behavior.
 Offers insights on how parallel computing can boost simulation-based testing.
 
 - *(optional)* Provides back-end engineers with a flexible model to optimize matchmaking, queuing, and autoscaling algorithms.
 Stress test without players (controlled), stress test with player (uncontrolled & unpredictable)
+
+<h2 align=center>V  . Recommendations</h2>
+
+
+<br>
+<h1 align=center>References</h1>

@@ -119,7 +119,7 @@ def simulate_game_day(workday_minutes, check_interval, server_max_capacity):
 
 if __name__ == "__main__":
     # Simulation Parameters
-    SIMULATIONS = 10
+    SIMULATIONS = 2
     WORKDAY_MINUTES = 1440
     CHECK_INTERVAL = 10  # Every 10 minutes
     SERVER_MAX_CAPACITY_SAMPLE = np.random.uniform(100, 300, SIMULATIONS)
