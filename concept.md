@@ -6,20 +6,17 @@ This study explores the performance limitations of centralized multiplayer game 
 *Keywords: Monte Carlo, Simulation, Stochastic Modelling, Capacity Planning, Agent-Based Modelling*
 
 <h2 align=center>I. Introduction</h2>
-Modern online games often experience unpredictable and spiky loads:
 
-- New updates cause traffic surges.
-- Events or tournaments attract mass logins.
-- Weekend vs weekday behavior differs.
+## Players
+## Server
+## Literatrue Gap
 
 
-```
-Backend engineers need to predict when and how a server might break down under pressure. But they rarely have access to complete real-world data before launch — this is where simulations help.
+## Research Goals
 
-By using Monte Carlo simulations, we can artificially model thousands of "what if" days — each with unique conditions like peak hours, sudden traffic, or player dropouts. This gives developers insight into system limits and risk patterns — before the servers go live.
-```
+This study proposes a Monte Carlo simulaton framework that models 3 different types of players, from idle users to highly active gamers, and analyzes their collective impact on the server's performance. 
 
-The objectives of this study is to simulate an online game server's performance under increasing player load and to estimate the optimal server capacity and predict overload thresholds in open-world multiplayer games using player behavior models and Monte Carlo simulation.
+To simulate an online game server's performance under increasing player load and to estimate the optimal server capacity and predict overload thresholds in open-world multiplayer games using player behavior models and Monte Carlo simulation.
 
 ## Research Questions
 1. What is the relationship between server capacity and the rate of player disconnections due to overload?

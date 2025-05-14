@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from collections import defaultdict
 from Engine.simulation_engine import simulate_game_day
-
+from multiprocessing import Pool, cpu_count
 
 
 # Simulation Parameters
@@ -15,7 +15,7 @@ SPAWN_BASE = 5
 SPAWN_PEAK = 15
 
 # Server Capability Parameters 
-SERVERS = 1
+SERVERS = 3
 MINIMUM_SERVER_CAPACITY = 100
 MAXIMUM_SERVER_CAPACITY = 300
 SERVER_MAX_CAPACITY_SAMPLE = np.random.uniform(MINIMUM_SERVER_CAPACITY, 
@@ -23,25 +23,48 @@ SERVER_MAX_CAPACITY_SAMPLE = np.random.uniform(MINIMUM_SERVER_CAPACITY,
                                                 SIMULATIONS)
 
 if __name__ == "__main__":
+    # Worker function to simulate one day
+    def simulate_worker(args):
+        sim_idx, smc_value, servers = args
+        print(f"[Worker] Simulating day {sim_idx + 1}")
+        tpo, avg_happy, log, tsl, smc, hbt, dbt, drop_out = simulate_game_day(
+            WORKDAY_MINUTES,
+            CHECK_INTERVAL,
+            smc_value,
+            servers
+        )
+        return {
+            "tpo": tpo,
+            "avg_happy": avg_happy,
+            "log": log,
+            "tsl": tsl,
+            "smc": smc,
+            "hbt": hbt,
+            "dbt": dbt,
+            "drop_out": drop_out,
+        }
+        
+    # Prepare simulation inputs
+    args_list = [(i, np.round(SERVER_MAX_CAPACITY_SAMPLE[i]), SERVERS) for i in range(SIMULATIONS)]
+
+    # Run simulations in parallel
+    with Pool(processes=cpu_count()) as pool:
+        results = pool.map(simulate_worker, args_list)
+   
     # Run and collect data for all simulations
     all_simulations = []
     all_dropouts_per_run_by_type = []  
     all_dropouts_by_type = {"idler": 0, "casual": 0, "pro": 0}
     all_happiness_by_type = {"idler": [], "casual": [], "pro": []}
     
-    for sim in range(SIMULATIONS):
-        print(f"Simulating day {sim + 1}/{SIMULATIONS}")
-        tpo, avg_happy, log, tsl, smc, hbt, dbt, drop_out = simulate_game_day(
-            WORKDAY_MINUTES, 
-            CHECK_INTERVAL, 
-            np.round(SERVER_MAX_CAPACITY_SAMPLE[sim]),
-            SERVERS
-        )
-        all_simulations.append((tpo, avg_happy, log, tsl, smc))
-        all_dropouts_per_run_by_type.append(dbt)
+    for result in results:
+        all_simulations.append((
+            result["tpo"], result["avg_happy"], result["log"], result["tsl"], result["smc"]
+        ))
+        all_dropouts_per_run_by_type.append(result["dbt"])
         for key in all_happiness_by_type:
-            all_happiness_by_type[key].extend(hbt[key])
-            all_dropouts_by_type[key] += dbt[key]
+            all_happiness_by_type[key].extend(result["hbt"][key])
+            all_dropouts_by_type[key] += result["dbt"][key]
 
     minutes = np.arange(144)
     hour_ticks = np.arange(0, 144, 6)
@@ -134,7 +157,6 @@ if __name__ == "__main__":
 
     for _, _, _, tsl, smc in all_simulations:
         avg_latency = round(np.mean(tsl), 2)
-        max_latency = np.max(tsl)
                 
         above_critical_value = 0
         for latency in tsl:
@@ -142,8 +164,8 @@ if __name__ == "__main__":
                 above_critical_value += 1
                 
         pct_latency = round(above_critical_value / len(tsl), 2) * 100
-        # print(f"Max: {max_latency} | Avg: {avg_latency} | Pct: %{pct_latency}")
-        latency_by_cap.append((smc, avg_latency, max_latency, pct_latency))
+        # print(f"Avg: {avg_latency} | Pct: %{pct_latency}")
+        latency_by_cap.append((smc, avg_latency, pct_latency))
         
 
  
@@ -161,7 +183,7 @@ if __name__ == "__main__":
     fig, axs = plt.subplots(1, 2, figsize=(16, 6))
         
     # --- Subplot 1: Line plot of overload percentages ---
-    for smc, avg_latency, max_latency, pct_latency in latency_by_cap:
+    for smc, avg_latency, pct_latency in latency_by_cap:
         axs[0].plot(smc, pct_latency, marker='o', color='crimson')
         axs[0].plot(smc, avg_latency, marker='x', color='gold')
     
@@ -188,16 +210,6 @@ if __name__ == "__main__":
     for bar in bars:
         yval = bar.get_height()
         axs[1].text(bar.get_x() + bar.get_width() / 2, yval + 0.05, f"{yval:.2f}", ha='center', va='bottom')
-    
-    # Analyze spike in latency
-    server_caps = [smc for _, _, _, _, smc in all_simulations]
-    avg_latencies = [np.mean(tsl) for _, _, _, tsl, _ in all_simulations]
-    
-    latency_diffs = np.diff(avg_latencies)
-    spike_index = np.argmax(latency_diffs)  # where the biggest jump occurs
-    overload_capacity = server_caps[spike_index]
-    print(f"🧠 Estimated overload point: Server capacity ≈ {overload_capacity}")
-
 
     plt.tight_layout()
-    # plt.show()
+    plt.show()

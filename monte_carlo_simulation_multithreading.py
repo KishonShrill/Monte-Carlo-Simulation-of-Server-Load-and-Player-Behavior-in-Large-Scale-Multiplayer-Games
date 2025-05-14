@@ -2,11 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from collections import defaultdict
 from Engine.simulation_engine import simulate_game_day
+from threading import Thread, Lock
+import time
 
 
 
 # Simulation Parameters
-SIMULATIONS = 1000
+SIMULATIONS = 100
 WORKDAY_MINUTES = 1440  # Minutes over 24 hours
 CHECK_INTERVAL = 10  # Debug Print Every 10 minutes
 
@@ -15,7 +17,7 @@ SPAWN_BASE = 5
 SPAWN_PEAK = 15
 
 # Server Capability Parameters 
-SERVERS = 1
+SERVERS = 3
 MINIMUM_SERVER_CAPACITY = 100
 MAXIMUM_SERVER_CAPACITY = 300
 SERVER_MAX_CAPACITY_SAMPLE = np.random.uniform(MINIMUM_SERVER_CAPACITY, 
@@ -29,19 +31,36 @@ if __name__ == "__main__":
     all_dropouts_by_type = {"idler": 0, "casual": 0, "pro": 0}
     all_happiness_by_type = {"idler": [], "casual": [], "pro": []}
     
-    for sim in range(SIMULATIONS):
-        print(f"Simulating day {sim + 1}/{SIMULATIONS}")
+    # Lock to prevent race conditions when writing to shared structures
+    lock = Lock()
+    
+    def simulation_thread(sim):
+        # print(f"Simulating day {sim + 1}/{SIMULATIONS}")
         tpo, avg_happy, log, tsl, smc, hbt, dbt, drop_out = simulate_game_day(
             WORKDAY_MINUTES, 
             CHECK_INTERVAL, 
             np.round(SERVER_MAX_CAPACITY_SAMPLE[sim]),
             SERVERS
         )
-        all_simulations.append((tpo, avg_happy, log, tsl, smc))
-        all_dropouts_per_run_by_type.append(dbt)
-        for key in all_happiness_by_type:
-            all_happiness_by_type[key].extend(hbt[key])
-            all_dropouts_by_type[key] += dbt[key]
+        with lock:
+            all_simulations.append((tpo, avg_happy, log, tsl, smc))
+            all_dropouts_per_run_by_type.append(dbt)
+            for key in all_happiness_by_type:
+                all_happiness_by_type[key].extend(hbt[key])
+                all_dropouts_by_type[key] += dbt[key]
+                
+                
+    threads = []
+
+    for sim in range(SIMULATIONS):
+        thread = Thread(target=simulation_thread, args=(sim,))
+        threads.append(thread)
+        thread.start()
+
+    # Wait for all threads to complete
+    for thread in threads:
+        thread.join()
+            
 
     minutes = np.arange(144)
     hour_ticks = np.arange(0, 144, 6)
@@ -189,9 +208,12 @@ if __name__ == "__main__":
         yval = bar.get_height()
         axs[1].text(bar.get_x() + bar.get_width() / 2, yval + 0.05, f"{yval:.2f}", ha='center', va='bottom')
     
-    # Analyze spike in latency
+    # # Analyze spike in latency
     server_caps = [smc for _, _, _, _, smc in all_simulations]
     avg_latencies = [np.mean(tsl) for _, _, _, tsl, _ in all_simulations]
+    
+    paired = sorted(zip(server_caps, avg_latencies), key=lambda x: x[0])
+    server_caps, avg_latencies = zip(*paired)
     
     latency_diffs = np.diff(avg_latencies)
     spike_index = np.argmax(latency_diffs)  # where the biggest jump occurs

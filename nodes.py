@@ -42,3 +42,13 @@ print(f"{random.random()}")
 # plt.legend()
 # plt.tight_layout()
 # plt.show()
+
+
+
+# ABOVEEE
+
+    
+
+# BELOWWW
+
+    

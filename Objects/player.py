@@ -35,7 +35,7 @@ class Player:
             if random.random() < self.quit_rate:
                 self.rage_quit = True
                 self.session_duration = 0  # Simulate rage quit
-                print(f"I QUIT: {self.quit_rate} | {self.happiness}")
+                # print(f"I QUIT: {self.quit_rate} | {self.happiness}")
                 self.happiness = 0
         else:
             if self.quit_rate > 0.00:
