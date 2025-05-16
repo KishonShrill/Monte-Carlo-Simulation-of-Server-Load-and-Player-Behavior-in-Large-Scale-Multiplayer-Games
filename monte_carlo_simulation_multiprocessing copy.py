@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from collections import defaultdict
 from Engine.simulation_engine import simulate_game_day
 from multiprocessing import Pool, cpu_count
-
+import time
 
 # Simulation Parameters
 SIMULATIONS = 1000
@@ -23,6 +23,8 @@ SERVER_MAX_CAPACITY_SAMPLE = np.random.uniform(MINIMUM_SERVER_CAPACITY,
                                                 SIMULATIONS)
 
 if __name__ == "__main__":
+    start_seq = time.perf_counter()
+    
     # Worker function to simulate one day
     def simulate_worker(args):
         sim_idx, smc_value, servers = args
@@ -46,11 +48,19 @@ if __name__ == "__main__":
         
     # Prepare simulation inputs
     args_list = [(i, np.round(SERVER_MAX_CAPACITY_SAMPLE[i]), SERVERS) for i in range(SIMULATIONS)]
+    end_seq = time.perf_counter()
+    sequential_time = end_seq - start_seq
 
     # Run simulations in parallel
-    with Pool(processes=14) as pool:
+    start_par = time.perf_counter()
+    with Pool(processes=cpu_count()) as pool:
         results = pool.map(simulate_worker, args_list)
+    end_par = time.perf_counter()
+    parallel_time = end_par - start_par
+    print(f"[Parallel] Total time: {parallel_time:.2f} seconds")
    
+   
+    start_seq = time.perf_counter()
     # Run and collect data for all simulations
     all_simulations = []
     all_dropouts_per_run_by_type = []  
@@ -220,3 +230,17 @@ if __name__ == "__main__":
 
     plt.tight_layout()
     # plt.show()
+    
+    end_seq = time.perf_counter()
+    sequential_time = sequential_time + (end_seq - start_seq)
+    
+    T_total = parallel_time  # total wall clock time of parallel version
+    T_seq = sequential_time
+    P = 1 - (T_seq / T_total)
+    print(f"\nEstimated Parallelizable Portion (P): {P:.4f}")
+    print(f"Estimated Sequential Portion (1 - P): {1 - P:.4f}")
+    
+    # Now use Amdahl's Law for a few cores
+    for N in range(1, 17):
+        S_N = 1 / ((1 - P) + (P / N))
+        print(f"Speedup with {N} cores: {S_N:.2f}x")
